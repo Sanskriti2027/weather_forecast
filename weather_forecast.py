@@ -1,44 +1,31 @@
 import requests
-import sys
+import json
 
-API_KEY = "999fd252b84f56de3fd76ae7acc71d04"  
+def get_weather(api_key, city):
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
+    response = requests.get(url)
+    data = response.json()
+    return data
 
-def fetch_weather(city):
-    try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
-        response = requests.get(url)
-        response.raise_for_status()
-        weather_data = response.json()
-        return weather_data
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while fetching weather data: {e}")
-        sys.exit(1)
-    except ValueError:
-        print("Unable to parse weather data. Please try again.")
-        sys.exit(1)
-
-def parse_weather(weather_data):
-    try:
-        main_info = weather_data["weather"][0]["main"]
+def display_weather(weather_data):
+    if weather_data["cod"] != "404":
+        main_weather = weather_data["weather"][0]["main"]
         description = weather_data["weather"][0]["description"]
         temperature = weather_data["main"]["temp"]
         humidity = weather_data["main"]["humidity"]
-
-        print(f"Weather: {main_info} ({description})")
-        print(f"Temperature: {temperature}°C")
+        wind_speed = weather_data["wind"]["speed"]
+        print(f"Weather: {main_weather} - {description}")
+        print(f"Temperature: {temperature} K")
         print(f"Humidity: {humidity}%")
-    except (KeyError, IndexError):
-        print("Unable to retrieve weather information. Please try again.")
-        sys.exit(1)
+        print(f"Wind Speed: {wind_speed} m/s")
+    else:
+        print("City not found.")
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python weather_forecast.py <city>")
-        sys.exit(1)
-
-    city = sys.argv[1]
-    weather_data = fetch_weather(city)
-    parse_weather(weather_data)
+    api_key = "999fd252b84f56de3fd76ae7acc71d04"  
+    city = input("Enter a city name: ")
+    weather_data = get_weather(api_key, city)
+    display_weather(weather_data)
 
 if __name__ == "__main__":
     main()
